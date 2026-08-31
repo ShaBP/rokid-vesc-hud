@@ -19,6 +19,8 @@ data class RawVescValues(
 
 data class Telemetry(
     val speedKph: Double = 0.0,
+    /** Absolute motor-controller duty cycle, expressed as 0–100 percent. */
+    val dutyPercent: Double = 0.0,
     val batteryPercent: Int = 0,
     val tripKm: Double = 0.0,
     val rangeKm: Double? = null,
@@ -28,6 +30,19 @@ data class Telemetry(
     val faultCode: Int = 0,
     val updatedAtMs: Long = 0L
 )
+
+/** Stable identity used to keep persistent rider data separate for each physical controller. */
+data class BoardIdentity(
+    val profileId: String,
+    val displayName: String,
+    val bleAddress: String,
+    val canId: Int? = null
+) {
+    val storageKey: String = buildString {
+        append(profileId).append(':').append(bleAddress)
+        canId?.let { append(":can:").append(it) }
+    }
+}
 
 /** Physical and electrical values used to translate raw VESC values into rider-facing data. */
 data class BoardConfig(
