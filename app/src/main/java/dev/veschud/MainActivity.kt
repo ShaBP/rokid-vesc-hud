@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import dev.veschud.data.TelemetrySource
 import dev.veschud.data.VescBleSource
+import dev.veschud.model.BoardIdentity
 import dev.veschud.model.Telemetry
 import dev.veschud.ui.HudView
 
@@ -14,6 +15,9 @@ import dev.veschud.ui.HudView
 class MainActivity : Activity(), TelemetrySource.Listener {
     private lateinit var hud: HudView
     private lateinit var source: TelemetrySource
+    private var activeBoard: BoardIdentity? = null
+    private var rideMaxKph = 0.0
+    private var boardMaxKph = 0.0
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -36,6 +40,30 @@ class MainActivity : Activity(), TelemetrySource.Listener {
     }
     override fun onDestroy() { source.stop(); super.onDestroy() }
     override fun onState(state: String) = runOnUiThread { hud.setState(state) }
-    override fun onTelemetry(value: Telemetry) = runOnUiThread { hud.setTelemetry(value) }
+    override fun onBoardIdentified(identity: BoardIdentity) = runOnUiThread {
+        if (activeBoard?.storageKey != identity.storageKey) {
+            activeBoard = identity
+            rideMaxKph = 0.0
+            boardMaxKph = getPreferences(MODE_PRIVATE).getFloat(maxKey(identity), 0f).toDouble()
+            hud.setSpeedRecords(rideMaxKph, boardMaxKph)
+        }
+    }
+    override fun onTelemetry(value: Telemetry) = runOnUiThread {
+        if (value.speedKph > 20.0 && value.speedKph > rideMaxKph) {
+            rideMaxKph = value.speedKph
+            if (rideMaxKph > boardMaxKph) {
+                boardMaxKph = rideMaxKph
+                activeBoard?.let { identity ->
+                    getPreferences(MODE_PRIVATE).edit()
+                        .putFloat(maxKey(identity), boardMaxKph.toFloat())
+                        .apply()
+                }
+            }
+            hud.setSpeedRecords(rideMaxKph, boardMaxKph)
+        }
+        hud.setTelemetry(value)
+    }
     override fun onError(message: String) = runOnUiThread { hud.setState(message.uppercase()) }
+
+    private fun maxKey(identity: BoardIdentity) = "board_max_kph:${identity.storageKey}"
 }
