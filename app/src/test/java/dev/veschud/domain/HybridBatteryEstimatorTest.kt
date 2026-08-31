@@ -6,6 +6,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class HybridBatteryEstimatorTest {
+    @Test fun mapperConvertsSignedVescDutyRatioToAbsolutePercent() {
+        val raw = values(voltage = 81.2, wh = 0.0).copy(duty = -0.427)
+        assertEquals(42.7, TelemetryMapper(BoardProfiles.ADV2).map(raw, 0).dutyPercent, 0.001)
+    }
+
     @Test fun adv2Samsung50sMapsObservedVoltageToFloatControlReading() {
         val estimator = HybridBatteryEstimator(BoardProfiles.ADV2)
         assertEquals(92, estimator.estimate(values(voltage = 81.2, wh = 0.0), 0.0, 0))
