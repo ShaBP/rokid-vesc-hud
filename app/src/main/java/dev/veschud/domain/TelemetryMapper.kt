@@ -34,8 +34,9 @@ class TelemetryMapper(initialProfile: BoardProfile = BoardProfiles.ADV2) {
         val battery = batteryEstimator.estimate(v, kotlin.math.abs(speed), nowMs)
         val remainingWh = config.usableBatteryWh * battery / 100.0
         val range = smoothedWhPerKm?.takeIf { it in 3.0..80.0 }?.let { remainingWh / it }
-        return Telemetry(kotlin.math.abs(speed), battery, trip, range, v.fetTempC, v.motorTempC,
-            v.inputVoltageV * v.inputCurrentA, v.faultCode, nowMs)
+        val dutyPercent = (kotlin.math.abs(v.duty) * 100.0).coerceIn(0.0, 100.0)
+        return Telemetry(kotlin.math.abs(speed), dutyPercent, battery, trip, range, v.fetTempC,
+            v.motorTempC, v.inputVoltageV * v.inputCurrentA, v.faultCode, nowMs)
     }
 
     fun resetTrip() { startTacho = null; startNetWh = null; smoothedWhPerKm = null }
