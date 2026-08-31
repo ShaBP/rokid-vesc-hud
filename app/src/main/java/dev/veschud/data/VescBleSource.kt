@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import dev.veschud.config.BoardProfiles
 import dev.veschud.domain.TelemetryMapper
+import dev.veschud.model.BoardIdentity
 import dev.veschud.model.BoardProfile
 import dev.veschud.protocol.VescFrameDecoder
 import dev.veschud.protocol.VescProtocol
@@ -36,6 +37,7 @@ class VescBleSource(private val context: Context) : TelemetrySource {
     private var linkState = LinkState.DISCONNECTED
     private var detectedProfile: BoardProfile? = null
     private var motorCanId: Int? = null
+    private var bleAddress: String? = null
     private var canCandidates = emptyList<Int>()
     private var probeIndex = 0
     private var probeToken = 0
@@ -99,6 +101,7 @@ class VescBleSource(private val context: Context) : TelemetrySource {
             context.getSystemService(BluetoothManager::class.java).adapter.bluetoothLeScanner.stopScan(this)
             listener?.onState("CONNECTING")
             val advertisedName = result.scanRecord?.deviceName ?: result.device.name
+            bleAddress = result.device.address
             BoardProfiles.fromBleName(advertisedName)?.let(::selectProfile)
             gatt = result.device.connectGatt(context, false, callback, BluetoothDevice.TRANSPORT_LE)
         }
@@ -155,6 +158,9 @@ class VescBleSource(private val context: Context) : TelemetrySource {
         detectedProfile = value
         mapper.setProfile(value)
         val can = motorCanId?.let { " • CAN $it" }.orEmpty()
+        bleAddress?.let { address ->
+            listener?.onBoardIdentified(BoardIdentity(value.id, value.displayName, address, motorCanId))
+        }
         listener?.onState("LIVE • ${value.displayName}$can")
     }
 

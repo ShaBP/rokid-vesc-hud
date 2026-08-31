@@ -1,5 +1,6 @@
 package dev.veschud.data
 
+import dev.veschud.model.BoardIdentity
 import dev.veschud.model.Telemetry
 
 /**
@@ -13,6 +14,7 @@ interface TelemetrySource {
     fun stop()
     interface Listener {
         fun onState(state: String)
+        fun onBoardIdentified(identity: BoardIdentity)
         fun onTelemetry(value: Telemetry)
         fun onError(message: String)
     }
