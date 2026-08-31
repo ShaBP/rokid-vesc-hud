@@ -19,6 +19,10 @@ configuration files, making other VESC boards straightforward to add.
 > This is an independent community project. It is not affiliated with Rokid, Floatwheel,
 > Future Motion, Vedder, or the VESC Project. Never rely on a HUD as a safety system.
 
+## HUD example
+
+![Example monochrome Rokid HUD showing duty, speed, speed records, battery, trip, range, temperatures, power, and connection status](assets/hud-example.svg)
+
 ## How it works
 
 ```text
