@@ -4,11 +4,13 @@ A small, read-only Android HUD for Rokid AI Glasses. It connects directly to a V
 motor controller over Bluetooth Low Energy and shows the information needed while riding:
 
 - Speed
+- Duty cycle
 - Battery percentage
 - Trip distance
 - Estimated remaining range
 - Motor and controller temperatures
 - Input power and VESC fault status
+- Per-ride and per-board maximum speed
 
 The current profiles support the **Floatwheel ADV2** (20s2p Samsung 50S) and **Floatwheel Atom**
 (22s1p Reliance RS50). Board and battery definitions live in two deliberately simple Kotlin
@@ -31,6 +33,8 @@ is only a VESC Express bridge, the app scans CAN and probes each node until it f
 motor controller. It then polls `COMM_GET_VALUES` four times per second.
 
 Only read-only VESC commands are sent: firmware identification, CAN discovery, and telemetry.
+Duty cycle comes from the signed `duty_now` value in `COMM_GET_VALUES`; the HUD shows its absolute
+magnitude rounded to a whole percentage, so forward and reverse rotation use the same 0–100% scale.
 
 ## Requirements
 
@@ -65,6 +69,25 @@ NUS UUIDs used by the app:
 
 The status line progresses through `SCANNING`, `CONNECTING`, `IDENTIFYING`, optional CAN search,
 and finally `LIVE • <board name>`.
+
+## Choose metric or imperial units
+
+Edit [`DisplayConfig.kt`](app/src/main/java/dev/veschud/config/DisplayConfig.kt) and select one
+measurement system:
+
+```kotlin
+val measurementSystem = MeasurementSystem.METRIC
+// or
+val measurementSystem = MeasurementSystem.IMPERIAL
+```
+
+Metric displays km/h, kilometres, and °C. Imperial displays mph, miles, and °F. Power remains
+in watts. Calculations and stored speed records remain metric internally, so changing this setting
+does not reset or distort them.
+
+`RIDE MAX` starts recording after the board exceeds 20 km/h (12.4 mph) and lasts until the app is
+closed or a different board is selected. `BOARD MAX` is retained between app launches and stored
+separately using the BLE device address and motor-controller CAN ID.
 
 ## Add or edit a battery curve
 
