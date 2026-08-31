@@ -10,8 +10,8 @@ android {
         applicationId = "dev.veschud"
         minSdk = 24
         targetSdk = 35
-        versionCode = 8
-        versionName = "0.5.0"
+        versionCode = 10
+        versionName = "0.6.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { buildConfig = true }
